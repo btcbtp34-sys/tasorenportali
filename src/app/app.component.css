@@ -1,0 +1,933 @@
+/* Taşeron Portali - Tam Ekran (Full-Width), Modern Arama ve Ferah Düzen */
+
+.app-layout {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  padding: 16px 28px 40px 28px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+/* ========================================================================= */
+/* ÜST ENTEGRE NAVBAR (LOGO + MENÜLER ÜSTTE) */
+/* ========================================================================= */
+.app-top-navbar {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.header-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.12);
+}
+
+.brand-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.plant-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.plant-select {
+  background: transparent;
+  border: none;
+  color: #1e293b;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 9px 0;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ========================================================================= */
+/* ÜST MENÜ SEKMELERİ & YENİLENMİŞ SAAS ARAMA BARI */
+/* ========================================================================= */
+.header-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 24px;
+  background: #fafafa;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.top-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.top-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 9px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.top-nav-tab:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.top-nav-tab.active {
+  color: #0284c7;
+  background: #e0f2fe;
+  border-color: #bae6fd;
+}
+
+.tab-badge {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+
+.badge-rose-counter {
+  background: #ffe4e6;
+  color: #e11d48;
+  font-weight: 700;
+}
+
+/* TABLO ARAÇ ÇUBUĞU ARAMA KUTUSU (FERAH, TEMİZ VE RAHAT) */
+.table-search-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
+  width: 320px;
+  height: 38px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.18s ease;
+}
+
+.table-search-box:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.table-search-input {
+  background: transparent;
+  border: none;
+  color: #0f172a;
+  font-size: 0.84rem;
+  font-weight: 500;
+  outline: none;
+  width: 100%;
+}
+
+.table-search-input::placeholder {
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.clear-search-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.clear-search-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+/* ========================================================================= */
+/* TOAST BANNER */
+/* ========================================================================= */
+.toast-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.toast-success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.toast-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.toast-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+/* ========================================================================= */
+/* KPI CARDS (BEYAZ TEMA, NET HİYERARŞİ) */
+/* ========================================================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.border-rose-alert {
+  border-color: #fecdd3 !important;
+  background: #fffdfd !important;
+}
+
+.border-amber-alert {
+  border-color: #fde68a !important;
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.kpi-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-blue-50 { background: #f0f9ff; border: 1px solid #e0f2fe; }
+.bg-emerald-50 { background: #ecfdf5; border: 1px solid #d1fae5; }
+.bg-rose-50 { background: #fff1f2; border: 1px solid #ffe4e6; }
+.bg-amber-50 { background: #fffbeb; border: 1px solid #fef3c7; }
+
+.kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kpi-number {
+  font-size: 1.85rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.text-rose-600 { color: #e11d48 !important; }
+.text-amber-600 { color: #d97706 !important; }
+
+.kpi-subtext {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* ========================================================================= */
+/* CONTENT SECTION & TOOLBAR */
+/* ========================================================================= */
+.content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.chip-btn.active {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
+}
+
+.chip-rose.active {
+  background: #ffe4e6;
+  border-color: #e11d48;
+  color: #be123c;
+}
+
+.chip-amber.active {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #b45309;
+}
+
+.chip-emerald.active {
+  background: #d1fae5;
+  border-color: #059669;
+  color: #047857;
+}
+
+.info-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #0369a1;
+  background: #f0f9ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #bae6fd;
+}
+
+/* Görünüm Modu Seçici (Kart / Tablo) */
+.view-mode-toggle {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-mode-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* ========================================================================= */
+/* YENİLENMİŞ SAP TAŞERON KARTLARI (MODERN COMPANIES GRID) */
+/* ========================================================================= */
+.modern-companies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.modern-company-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.modern-company-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.mcc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mcc-brand-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.mcc-logo-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mcc-vendor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.mcc-vendor-code {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.mcc-contract-tag {
+  font-size: 0.74rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mcc-company-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mcc-tax-no {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Orta Detay Grid (2x2 İkonlu Alan) */
+.mcc-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.mcc-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.detail-value {
+  font-size: 0.86rem;
+  margin-top: 2px;
+}
+
+/* Alt Metrik Şeridi */
+.mcc-metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+}
+
+.mcc-metric-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mmb-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.mmb-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.compliance-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compliance-percent {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.compliance-track {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.compliance-fill {
+  height: 100%;
+}
+
+.mcc-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+}
+
+/* ========================================================================= */
+/* TABLOLAR (BEYAZ TEMA, TAM GENİŞLİK) */
+/* ========================================================================= */
+.table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+}
+
+.worker-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.worker-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.worker-subtext {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.subcontractor-tag {
+  font-size: 0.74rem;
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.subcontractor-name-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.period-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.file-name-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #64748b;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.sap-rate-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rate-amount {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rate-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0284c7;
+  letter-spacing: 0.04em;
+}
+
+.net-pay-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.net-amount {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.net-score {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.text-rose {
+  color: #e11d48 !important;
+}
+
+.spread-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.spread-val-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spread-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #d97706;
+}
+
+.spread-bar {
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.spread-bar-fill {
+  height: 100%;
+}
+
+.bg-rose { background: #e11d48; }
+.bg-emerald { background: #059669; }
+
+.overtime-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+}
+
+.overtime-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.missing-ot-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #be123c;
+  background: #fff1f2;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid #fecdd3;
+}
+
+.compliant-ot-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #047857;
+  font-weight: 600;
+}
+
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sub-decision-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+}
+
+.empty-state-cell {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+}
+
+.role-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.compliance-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compliance-mini-bar {
+  width: 50px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.compliance-mini-fill {
+  height: 100%;
+}
+
+.gate-info-text {
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.shift-subtext {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* ========================================================================= */
+/* REPORT TAB */
+/* ========================================================================= */
+.report-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.report-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.report-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.report-card-desc {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.margin-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.margin-stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.margin-stat-item .name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .app-layout {
+    padding: 14px;
+  }
+  .modern-companies-grid {
+    grid-template-columns: 1fr;
+  }
+  .mcc-metrics-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .modern-search-wrapper {
+    min-width: 100%;
+  }
+}

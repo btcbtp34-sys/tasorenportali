@@ -1,0 +1,812 @@
+<!-- TAŞERON PORTALİ - YÖNETİM, PDKS & AI BORDRO DENETİM SİSTEMİ -->
+<div class="app-layout">
+
+  <!-- ÜST ENTEGRE HEADER & LOGO BARI -->
+  <header class="app-top-navbar glass-panel">
+    <div class="header-main-row">
+      <!-- Kurumsal Logo & Portali Başlığı -->
+      <div class="brand-container">
+        <div class="brand-badge">
+          <app-icon name="building" [size]="24" customClass="text-sky-600"></app-icon>
+        </div>
+        <div>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">TAŞERON PORTALİ</h1>
+            <span class="badge badge-blue">YÖNETİM & DENETİM</span>
+          </div>
+          <p class="brand-subtitle">Alt Taşeron Sözleşme Yönetimi &bull; PDKS Entegrasyonu &bull; AI Bordro Denetim Portali</p>
+        </div>
+      </div>
+
+      <!-- Sağ Aksiyon Butonları & Tesis Seçimi -->
+      <div class="header-actions">
+        <!-- Tesis / Saha Seçici -->
+        <div class="plant-select-wrapper">
+          <app-icon name="factory" [size]="16" customClass="text-slate-500"></app-icon>
+          <select [(ngModel)]="selectedPlant" class="plant-select">
+            <option value="ALL">Tüm Tesis ve Sahalar</option>
+            <option value="Dilovası Çelik Boru Tesisleri">Dilovası Tesisleri</option>
+            <option value="Gebze 1 Fabrikası - ERW Hattı">Gebze 1 - ERW Fabrikası</option>
+            <option value="İskenderun ERW Spiral Tesisleri">İskenderun ERW Tesisleri</option>
+            <option value="Gebze 2 Profil & Dilme Tesisi">Gebze 2 Profil Tesisi</option>
+          </select>
+        </div>
+
+        <!-- SAP Canlı Entegrasyon Butonu -->
+        <button class="btn-secondary" (click)="syncSap()" [disabled]="isSapSyncing" title="SAP MM/PM/FI-CO Sisteminden Taşeron Verisini Eşitle">
+          <app-icon name="refresh" [size]="15" [customClass]="isSapSyncing ? 'animate-spin text-sky-600' : 'text-sky-600'"></app-icon>
+          <span>{{ isSapSyncing ? 'SAP Eşitleniyor...' : 'SAP Verisini Eşitle' }}</span>
+        </button>
+
+        <!-- PDKS Verisini Taşeronlara İlet Butonu -->
+        <button class="btn-secondary" (click)="transferPdks()" title="Kişilerin Güncel PDKS Turnike Giriş-Çıkış Kayıtlarını Taşeronlara Gönder">
+          <app-icon name="send" [size]="15" customClass="text-emerald-600"></app-icon>
+          <span>PDKS'yi Taşeronlara İlet</span>
+        </button>
+
+        <!-- Bordro Yükle (AI Denetim) Butonu -->
+        <button class="btn-primary" (click)="openUploadModal()">
+          <app-icon name="sparkles" [size]="16"></app-icon>
+          <span>Bordro Yükle (AI Denetim)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ÜST MENÜ SEKMELERİ BARI (FERAH VE GENİŞ) -->
+    <div class="header-menu-row">
+      <nav class="top-nav-tabs">
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'ai-audits'"
+          (click)="activeTab = 'ai-audits'"
+        >
+          <app-icon name="brain" [size]="17"></app-icon>
+          <span>AI Bordro & Hakediş Çapraz Denetimi</span>
+          <span class="tab-badge" [class.badge-rose-counter]="highRiskAuditCount > 0">
+            {{ audits.length }}
+          </span>
+        </button>
+
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'subcontractors'"
+          (click)="activeTab = 'subcontractors'"
+        >
+          <app-icon name="building" [size]="17"></app-icon>
+          <span>SAP Alt Taşeron Firmalar</span>
+          <span class="tab-badge">{{ companies.length }}</span>
+        </button>
+
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'workers'"
+          (click)="activeTab = 'workers'"
+        >
+          <app-icon name="users" [size]="17"></app-icon>
+          <span>Çalışan Havuzu & Persona Özlük Kartları</span>
+          <span class="tab-badge">{{ workers.length }}</span>
+        </button>
+
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'pdks'"
+          (click)="activeTab = 'pdks'"
+        >
+          <app-icon name="clock" [size]="17"></app-icon>
+          <span>PDKS Turnike & Mesai Kayıtları</span>
+          <span class="tab-badge">{{ pdksRecords.length }}</span>
+        </button>
+
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'reports'"
+          (click)="activeTab = 'reports'"
+        >
+          <app-icon name="file-text" [size]="17"></app-icon>
+          <span>Yönetici & Denetim Raporu</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- TOAST BİLDİRİM BANNER -->
+  <div *ngIf="toastMessage" class="toast-banner" [ngClass]="'toast-' + toastType">
+    <app-icon [name]="toastType === 'success' ? 'check-circle' : 'alert-triangle'" [size]="18"></app-icon>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- KPI EXECUTIVE METRICS RIBBON (GENİŞ & NET) -->
+  <section class="kpi-grid">
+    <!-- 1. SAP Taşeron Firmaları -->
+    <div class="kpi-card glass-panel">
+      <div class="kpi-header">
+        <span class="kpi-label">SAP Alt Taşeron Firma</span>
+        <div class="kpi-icon-box bg-blue-50">
+          <app-icon name="building" [size]="18" customClass="text-sky-600"></app-icon>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-number">{{ companies.length }}</span>
+        <span class="badge badge-blue">SAP Entegre</span>
+      </div>
+      <p class="kpi-subtext">Sözleşmesi ve hakediş bütçesi tanımlı alt taşeron firmalar</p>
+    </div>
+
+    <!-- 2. Aktif Saha Çalışanları -->
+    <div class="kpi-card glass-panel">
+      <div class="kpi-header">
+        <span class="kpi-label">Saha Personel Havuzu</span>
+        <div class="kpi-icon-box bg-emerald-50">
+          <app-icon name="users" [size]="18" customClass="text-emerald-600"></app-icon>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-number">{{ totalActiveWorkers }}</span>
+        <span class="badge badge-emerald">İSG İzinli</span>
+      </div>
+      <p class="kpi-subtext">Özlük ve sağlık karnesi takip edilen kayıtlı taşeron personelleri</p>
+    </div>
+
+    <!-- 3. AI Makas Riski (100 veriyorum, 80 veriyor şartı) -->
+    <div class="kpi-card glass-panel" [ngClass]="{'border-rose-alert': highRiskAuditCount > 0}">
+      <div class="kpi-header">
+        <span class="kpi-label">AI Hakediş Makas Alarmı</span>
+        <div class="kpi-icon-box bg-rose-50">
+          <app-icon name="scale" [size]="18" customClass="text-rose-600"></app-icon>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-number text-rose-600">{{ highRiskAuditCount }}</span>
+        <span class="badge badge-rose">Kırım / Kesinti Uyarısı</span>
+      </div>
+      <p class="kpi-subtext">Ana hakedişe kıyasla işçisine eksik maaş yatıran taşeronlar</p>
+    </div>
+
+    <!-- 4. Eksik Fazla Mesai İhlali -->
+    <div class="kpi-card glass-panel" [ngClass]="{'border-amber-alert': missingOvertimeCount > 0}">
+      <div class="kpi-header">
+        <span class="kpi-label">Eksik Fazla Mesai Tespiti</span>
+        <div class="kpi-icon-box bg-amber-50">
+          <app-icon name="clock" [size]="18" customClass="text-amber-600"></app-icon>
+        </div>
+      </div>
+      <div class="kpi-value-row">
+        <span class="kpi-number text-amber-600">{{ totalMissingOvertimeHours }} Saat</span>
+        <span class="badge badge-amber">{{ missingOvertimeCount }} Personelde İhlal</span>
+      </div>
+      <p class="kpi-subtext">PDKS turnikede yapılmış fakat bordroda ödenmemiş mesailer</p>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: AI BORDRO & HAKEDİŞ ÇAPRAZ DENETİMİ -->
+  <!-- ========================================================================= -->
+  <main *ngIf="activeTab === 'ai-audits'" class="content-section">
+    <!-- Alt Filtreler ve Arama Barı -->
+    <div class="section-toolbar glass-panel">
+      <div class="toolbar-left">
+        <div class="filter-chips">
+          <button
+            class="chip-btn"
+            [class.active]="auditFilter === 'ALL'"
+            (click)="auditFilter = 'ALL'"
+          >
+            Tüm Denetimler ({{ audits.length }})
+          </button>
+          <button
+            class="chip-btn chip-rose"
+            [class.active]="auditFilter === 'RISK_ONLY'"
+            (click)="auditFilter = 'RISK_ONLY'"
+          >
+            <app-icon name="alert-triangle" [size]="13"></app-icon>
+            Yüksek Makas / Kırım İhlalleri ({{ highRiskAuditCount }})
+          </button>
+          <button
+            class="chip-btn chip-amber"
+            [class.active]="auditFilter === 'OVERTIME_ONLY'"
+            (click)="auditFilter = 'OVERTIME_ONLY'"
+          >
+            <app-icon name="clock" [size]="13"></app-icon>
+            Eksik Fazla Mesai ({{ missingOvertimeCount }})
+          </button>
+          <button
+            class="chip-btn chip-emerald"
+            [class.active]="auditFilter === 'APPROVED'"
+            (click)="auditFilter = 'APPROVED'"
+          >
+            <app-icon name="check-circle" [size]="13"></app-icon>
+            Onaylananlar
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- DÜZGÜN VE FERAH TABLO ARAMA KUTUSU -->
+        <div class="table-search-box">
+          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Personel adı, T.C. Kimlik no veya taşeron ara..."
+            class="table-search-input"
+          />
+          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+            <app-icon name="x" [size]="14"></app-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Denetim Tablosu -->
+    <div class="table-container glass-panel">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Çalışan & Taşeron Firma</th>
+            <th>Dönem & Dosya</th>
+            <th>Ana Firma (SAP) Hakediş</th>
+            <th>AI Taranan Net Maaş</th>
+            <th>Makas / Kesinti Farkı</th>
+            <th>Fazla Mesai (PDKS vs. Bordro)</th>
+            <th>Risk & İhlal Durumu</th>
+            <th style="text-align: right;">Aksiyon</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let audit of filteredAudits">
+            <!-- Çalışan & Firma -->
+            <td>
+              <div class="worker-name-cell">
+                <span class="worker-title">{{ audit.workerName }}</span>
+                <span class="worker-subtext font-mono-numbers">TC: {{ audit.tcNumber }}</span>
+                <span class="subcontractor-tag">{{ audit.subcontractorName }}</span>
+              </div>
+            </td>
+
+            <!-- Dönem & Dosya -->
+            <td>
+              <div class="period-badge font-mono-numbers">{{ audit.period }}</div>
+              <div class="file-name-text" title="{{ audit.payrollFileName }}">
+                <app-icon name="file-text" [size]="12" customClass="text-slate-400"></app-icon>
+                <span>{{ audit.payrollFileName }}</span>
+              </div>
+            </td>
+
+            <!-- Ana Firma SAP Hak Edişi (100 Referans) -->
+            <td>
+              <div class="sap-rate-box">
+                <span class="rate-amount font-mono-numbers">{{ audit.sapAgreedRate.toLocaleString('tr-TR') }} ₺</span>
+                <span class="rate-badge">Referans 100</span>
+              </div>
+            </td>
+
+            <!-- AI OCR ile Okunan Taşeron Net Maaşı -->
+            <td>
+              <div class="net-pay-box">
+                <span class="net-amount font-mono-numbers" [class.text-rose]="audit.spreadPercentage > 15">
+                  {{ audit.aiExtractedNetPay.toLocaleString('tr-TR') }} ₺
+                </span>
+                <span class="net-score font-mono-numbers">
+                  Taşeron: {{ (100 - audit.spreadPercentage).toFixed(0) }} Birim
+                </span>
+              </div>
+            </td>
+
+            <!-- Makas / Kesinti Farkı -->
+            <td>
+              <div class="spread-cell">
+                <div class="spread-val-row">
+                  <span class="spread-amount font-mono-numbers" [class.text-rose]="audit.spreadPercentage > 15">
+                    -{{ audit.spreadAmount.toLocaleString('tr-TR') }} ₺
+                  </span>
+                  <span class="badge" [ngClass]="audit.spreadPercentage > 15 ? 'badge-rose' : 'badge-emerald'">
+                    -%{{ audit.spreadPercentage }}
+                  </span>
+                </div>
+                <div class="spread-bar">
+                  <div class="spread-bar-fill" [style.width.%]="audit.spreadPercentage" [ngClass]="audit.spreadPercentage > 15 ? 'bg-rose' : 'bg-emerald'"></div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Fazla Mesai (PDKS vs Bordro) -->
+            <td>
+              <div class="overtime-cell">
+                <div class="overtime-numbers">
+                  <span class="font-mono-numbers text-sky-700" title="PDKS Turnike Kaydı">
+                    PDKS: {{ audit.pdksRecordedOvertimeHours }} sa
+                  </span>
+                  <span class="font-mono-numbers text-slate-600" title="Bordroda Ödenen">
+                    Bordro: {{ audit.payrollPaidOvertimeHours }} sa
+                  </span>
+                </div>
+                <div *ngIf="audit.missingOvertimeHours > 0" class="missing-ot-alert font-mono-numbers">
+                  <app-icon name="alert-triangle" [size]="12"></app-icon>
+                  <span>{{ audit.missingOvertimeHours }} sa EKSİK! (-{{ audit.missingOvertimeAmountEst.toLocaleString('tr-TR') }} ₺)</span>
+                </div>
+                <div *ngIf="audit.missingOvertimeHours === 0" class="compliant-ot-tag">
+                  <app-icon name="check-circle" [size]="12"></app-icon>
+                  <span>Mesai Tam Ödendi</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Risk & Durum -->
+            <td>
+              <div class="status-cell">
+                <span class="badge" [ngClass]="{
+                  'badge-rose': audit.marginRiskLevel === 'HIGH_RISK_CUT',
+                  'badge-amber': audit.marginRiskLevel === 'ELEVATED',
+                  'badge-emerald': audit.marginRiskLevel === 'NORMAL'
+                }">
+                  <app-icon [name]="audit.marginRiskLevel === 'HIGH_RISK_CUT' ? 'alert-triangle' : (audit.marginRiskLevel === 'ELEVATED' ? 'clock' : 'check-circle')" [size]="11"></app-icon>
+                  {{ audit.marginRiskLevel === 'HIGH_RISK_CUT' ? 'Yüksek Kırım Uyarısı' : (audit.marginRiskLevel === 'ELEVATED' ? 'İnceleme Gerekir' : 'Sözleşmeye Uyumlu') }}
+                </span>
+                <span class="sub-decision-text" [ngClass]="{
+                  'text-rose': audit.auditStatus === 'UYUSMAZLIK_IHTAR',
+                  'text-amber': audit.auditStatus === 'IK_INCELEMEDE',
+                  'text-emerald': audit.auditStatus === 'ONAYLANDI'
+                }">
+                  {{ audit.auditStatus === 'UYUSMAZLIK_IHTAR' ? 'İhtarname Çekildi' : (audit.auditStatus === 'IK_INCELEMEDE' ? 'İK Masasında' : 'Onaylandı') }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Aksiyonlar -->
+            <td style="text-align: right;">
+              <button class="btn-secondary btn-sm" (click)="openAudit(audit)">
+                <app-icon name="eye" [size]="14"></app-icon>
+                <span>AI Detayı</span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredAudits.length === 0">
+            <td colspan="8" class="empty-state-cell">
+              <div class="empty-state">
+                <app-icon name="file-text" [size]="36" customClass="text-slate-400"></app-icon>
+                <p>Seçilen filtrelere uygun bordro denetim kaydı bulunamadı.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: SAP ALT TAŞERON FİRMALAR (DİREKT TABLO GÖRÜNÜMÜ) -->
+  <!-- ========================================================================= -->
+  <main *ngIf="activeTab === 'subcontractors'" class="content-section">
+    <div class="section-toolbar glass-panel">
+      <div class="toolbar-left">
+        <h2 class="section-title">
+          <app-icon name="database" [size]="20" customClass="text-sky-600"></app-icon>
+          SAP ERP Sisteminden Çekilen Alt Taşeron Firmalar ({{ filteredCompanies.length }} Firma)
+        </h2>
+      </div>
+      <div class="toolbar-right">
+        <!-- Arama Kutusu -->
+        <div class="table-search-box">
+          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Taşeron firma adı veya VKN ara..."
+            class="table-search-input"
+          />
+          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+            <app-icon name="x" [size]="14"></app-icon>
+          </button>
+        </div>
+
+        <button class="btn-secondary" (click)="syncSap()" [disabled]="isSapSyncing">
+          <app-icon name="refresh" [size]="15" [customClass]="isSapSyncing ? 'animate-spin text-sky-600' : 'text-sky-600'"></app-icon>
+          <span>{{ isSapSyncing ? 'Eşitleniyor...' : 'SAP RFC Canlı Eşitle' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DİREKT KURUMSAL TABLO -->
+    <div class="table-container glass-panel">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>SAP Satıcı Kodu</th>
+            <th>Firma Ticari Unvanı & VKN</th>
+            <th>Görevli Tesis / Fabrika</th>
+            <th>Sözleşme Kodu & Bitiş</th>
+            <th>Şantiye Sorumlusu & İletişim</th>
+            <th>Aktif İşçi</th>
+            <th>Aylık SAP Bütçesi</th>
+            <th>Birim Hakediş</th>
+            <th>Uyum Skoru</th>
+            <th>Sözleşme Statüsü</th>
+            <th style="text-align: right;">Aksiyon</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filteredCompanies">
+            <!-- SAP Satıcı Kodu -->
+            <td>
+              <span class="sap-vendor-badge font-mono-numbers">
+                <app-icon name="database" [size]="12"></app-icon>
+                {{ c.sapVendorId }}
+              </span>
+            </td>
+
+            <!-- Firma Unvanı & VKN -->
+            <td>
+              <div class="worker-name-cell">
+                <span class="worker-title">{{ c.name }}</span>
+                <span class="worker-subtext font-mono-numbers">VKN: {{ c.taxNumber }}</span>
+              </div>
+            </td>
+
+            <!-- Tesis -->
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <app-icon name="factory" [size]="15" customClass="text-slate-400"></app-icon>
+                <span class="font-semibold text-slate-800">{{ c.plant }}</span>
+              </div>
+            </td>
+
+            <!-- Sözleşme Kodu & Bitiş -->
+            <td>
+              <div class="font-mono-numbers text-xs text-sky-700 font-semibold">{{ c.contractCode }}</div>
+              <div class="font-mono-numbers text-xs text-slate-500">Bitiş: {{ c.contractEndDate }}</div>
+            </td>
+
+            <!-- Şantiye Sorumlusu -->
+            <td>
+              <div class="text-sm font-medium text-slate-900">{{ c.supervisorName }}</div>
+              <div class="font-mono-numbers text-xs text-sky-700">{{ c.supervisorPhone }}</div>
+            </td>
+
+            <!-- Aktif İşçi Sayısı -->
+            <td>
+              <span class="font-mono-numbers font-bold text-slate-900" style="font-size: 0.95rem;">
+                {{ c.activeWorkerCount }} Kişi
+              </span>
+            </td>
+
+            <!-- Aylık Bütçe -->
+            <td>
+              <span class="font-mono-numbers font-bold text-sky-700" style="font-size: 0.95rem;">
+                {{ c.monthlySapBudget.toLocaleString('tr-TR') }} ₺
+              </span>
+            </td>
+
+            <!-- Birim Hakediş -->
+            <td>
+              <div class="font-mono-numbers font-semibold text-slate-800">
+                {{ c.avgSapRatePerWorker.toLocaleString('tr-TR') }} ₺
+              </div>
+              <div class="text-xs text-slate-400">Kişi / Ay</div>
+            </td>
+
+            <!-- Uyum Skoru & Bar -->
+            <td>
+              <div class="compliance-cell" style="min-width: 90px;">
+                <span class="font-mono-numbers font-bold" [class.text-emerald-600]="c.complianceScore >= 80" [class.text-rose-600]="c.complianceScore < 70" [class.text-amber-600]="c.complianceScore >= 70 && c.complianceScore < 80">
+                  %{{ c.complianceScore }}
+                </span>
+                <div class="compliance-mini-bar" style="width: 50px;">
+                  <div class="compliance-mini-fill" [style.width.%]="c.complianceScore" [ngClass]="c.complianceScore >= 80 ? 'bg-emerald' : (c.complianceScore < 70 ? 'bg-rose' : 'bg-amber')"></div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Statü -->
+            <td>
+              <span class="badge" [ngClass]="c.status === 'ACTIVE' ? 'badge-emerald' : 'badge-amber'">
+                <app-icon [name]="c.status === 'ACTIVE' ? 'check-circle' : 'alert-triangle'" [size]="11"></app-icon>
+                {{ c.status === 'ACTIVE' ? 'Faal Sözleşme' : 'İncelemede' }}
+              </span>
+            </td>
+
+            <!-- Aksiyonlar -->
+            <td style="text-align: right;">
+              <button class="btn-secondary btn-sm" (click)="filterByCompanyWorkers(c.name)">
+                <app-icon name="users" [size]="13"></app-icon>
+                <span>İşçileri Gör ({{ c.activeWorkerCount }})</span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredCompanies.length === 0">
+            <td colspan="11" class="empty-state-cell">
+              <div class="empty-state">
+                <app-icon name="building" [size]="36" customClass="text-slate-400"></app-icon>
+                <p>Arama kriterlerine uygun taşeron firma bulunamadı.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: ÇALIŞAN HAVUZU & PERSONA ÖZLÜK KARTLARI -->
+  <!-- ========================================================================= -->
+  <main *ngIf="activeTab === 'workers'" class="content-section">
+    <div class="section-toolbar glass-panel">
+      <div class="toolbar-left">
+        <h2 class="section-title">
+          <app-icon name="users" [size]="20" customClass="text-sky-600"></app-icon>
+          Taşeron Çalışan Havuzu, Persona Kartları & İSG Dosyaları
+        </h2>
+      </div>
+      <div class="toolbar-right">
+        <!-- Arama Kutusu -->
+        <div class="table-search-box">
+          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Personel adı, TC No veya görev ara..."
+            class="table-search-input"
+          />
+          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+            <app-icon name="x" [size]="14"></app-icon>
+          </button>
+        </div>
+
+        <button class="btn-primary" (click)="openNewWorker()">
+          <app-icon name="plus" [size]="16"></app-icon>
+          <span>Yeni Personel Kaydet</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container glass-panel">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Ad Soyad & TC Kimlik</th>
+            <th>Görevi / Meslek</th>
+            <th>Bağlı Olduğu Taşeron</th>
+            <th>Fabrika / Tesis</th>
+            <th>PDKS Kart Kimliği</th>
+            <th>İSG & Özlük Uyumu</th>
+            <th>Turnike Giriş Yetkisi</th>
+            <th style="text-align: right;">Persona Detayı</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let worker of filteredWorkers">
+            <td>
+              <div class="worker-name-cell">
+                <span class="worker-title">{{ worker.fullName }}</span>
+                <span class="worker-subtext font-mono-numbers">{{ worker.tcNumber }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="role-badge">{{ worker.role }}</span>
+            </td>
+            <td>
+              <span class="subcontractor-name-text">{{ worker.subcontractorName }}</span>
+            </td>
+            <td>
+              <span class="text-slate-700 font-medium">{{ worker.plant }}</span>
+            </td>
+            <td>
+              <span class="font-mono-numbers text-sky-700 font-semibold">{{ worker.pdksBadgeId }}</span>
+            </td>
+            <td>
+              <div class="compliance-cell">
+                <span class="font-mono-numbers font-semibold" [class.text-emerald]="worker.complianceRate === 100" [class.text-amber]="worker.complianceRate < 100">
+                  %{{ worker.complianceRate }}
+                </span>
+                <div class="compliance-mini-bar">
+                  <div class="compliance-mini-fill" [style.width.%]="worker.complianceRate" [ngClass]="worker.complianceRate === 100 ? 'bg-emerald' : 'bg-amber'"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="worker.accessStatus === 'ALLOWED' ? 'badge-emerald' : 'badge-rose'">
+                <app-icon [name]="worker.accessStatus === 'ALLOWED' ? 'check-circle' : 'alert-triangle'" [size]="11"></app-icon>
+                {{ worker.accessStatus === 'ALLOWED' ? 'Giriş İzinli' : 'Giriş Askıda' }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <button class="btn-secondary btn-sm" (click)="openPersona(worker)">
+                <app-icon name="user" [size]="14"></app-icon>
+                <span>Özlük & Persona Karnesi</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 4: PDKS TURNİKE & MESAİ KAYITLARI -->
+  <!-- ========================================================================= -->
+  <main *ngIf="activeTab === 'pdks'" class="content-section">
+    <div class="section-toolbar glass-panel">
+      <div class="toolbar-left">
+        <h2 class="section-title">
+          <app-icon name="clock" [size]="20" customClass="text-sky-600"></app-icon>
+          PDKS Turnike Geçişleri & Fiili Çalışma Süreleri
+        </h2>
+      </div>
+      <div class="toolbar-right">
+        <!-- Arama Kutusu -->
+        <div class="table-search-box">
+          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Personel veya kapı ara..."
+            class="table-search-input"
+          />
+          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+            <app-icon name="x" [size]="14"></app-icon>
+          </button>
+        </div>
+
+        <button class="btn-secondary" (click)="transferPdks()">
+          <app-icon name="send" [size]="15" customClass="text-emerald-600"></app-icon>
+          <span>PDKS Kayıtlarını Taşeronlara Gönder</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container glass-panel">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Çalışan & TC Kimlik</th>
+            <th>Taşeron Firma</th>
+            <th>Tarih & Vardiya</th>
+            <th>Turnike İlk Giriş</th>
+            <th>Turnike Son Çıkış</th>
+            <th>Fiili Sahada Kalış</th>
+            <th>PDKS Fazla Mesai (FM)</th>
+            <th>Turnike Kapı Lokasyonu</th>
+            <th>Taşerona İletim Durumu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPdks">
+            <td>
+              <div class="worker-name-cell">
+                <span class="worker-title">{{ p.workerName }}</span>
+                <span class="worker-subtext font-mono-numbers">{{ p.tcNumber }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="subcontractor-name-text">{{ p.subcontractorName }}</span>
+            </td>
+            <td>
+              <span class="font-mono-numbers font-semibold text-slate-900">{{ p.date }}</span>
+              <div class="shift-subtext">{{ p.shift }}</div>
+            </td>
+            <td>
+              <span class="font-mono-numbers text-emerald-700 font-bold">{{ p.firstEntryTime }}</span>
+            </td>
+            <td>
+              <span class="font-mono-numbers text-sky-700 font-bold">{{ p.lastExitTime }}</span>
+            </td>
+            <td>
+              <span class="font-mono-numbers font-bold text-slate-800">{{ p.actualHours }} Saat</span>
+            </td>
+            <td>
+              <span class="font-mono-numbers" [class.text-amber-600]="p.overtimeHours > 0" [class.font-bold]="p.overtimeHours > 0">
+                {{ p.overtimeHours }} Saat FM
+              </span>
+            </td>
+            <td>
+              <span class="gate-info-text">{{ p.turnstileGate }}</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="p.transferredToVendor ? 'badge-emerald' : 'badge-amber'">
+                <app-icon [name]="p.transferredToVendor ? 'check-circle' : 'clock'" [size]="11"></app-icon>
+                {{ p.transferredToVendor ? 'Taşerona İletildi' : 'İletim Bekliyor' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 5: YÖNETİCİ & İSG DENETİM RAPORU -->
+  <!-- ========================================================================= -->
+  <main *ngIf="activeTab === 'reports'" class="content-section">
+    <div class="section-toolbar glass-panel">
+      <div class="toolbar-left">
+        <h2 class="section-title">
+          <app-icon name="file-text" [size]="20" customClass="text-sky-600"></app-icon>
+          Taşeron Hakediş Makas & Fazla Mesai Denetim Raporu
+        </h2>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-primary" (click)="exportReport()">
+          <app-icon name="download" [size]="16"></app-icon>
+          <span>Resmi Raporu Dışa Aktar (PDF/Excel)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Özet Yönetici Kartları -->
+    <div class="report-overview-grid">
+      <div class="glass-panel report-card">
+        <h3 class="report-card-title">Hakediş Makas Çözümlemesi</h3>
+        <p class="report-card-desc">Ana işveren birim hakedişi (100) ile taşeronların personele ödediği net ücretler arasındaki marj dağılımı:</p>
+        
+        <div class="margin-stat-list">
+          <div class="margin-stat-item">
+            <span class="name">Demiray Endüstriyel Montaj:</span>
+            <span class="badge badge-emerald font-mono-numbers">-%10.0 (Uyumlu)</span>
+          </div>
+          <div class="margin-stat-item">
+            <span class="name">Atlas Çelik & Ağır Bakım:</span>
+            <span class="badge badge-emerald font-mono-numbers">-%12.0 (Uyumlu)</span>
+          </div>
+          <div class="margin-stat-item">
+            <span class="name">Teknik İskele & Kumlama:</span>
+            <span class="badge badge-emerald font-mono-numbers">-%13.0 (Uyumlu)</span>
+          </div>
+          <div class="margin-stat-item">
+            <span class="name">Körfez Mekanik & Borulama:</span>
+            <span class="badge badge-rose font-mono-numbers">-%26.0 (KIRIM İHLALİ)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel report-card">
+        <h3 class="report-card-title">Fazla Mesai Gaspı ve İhlal Riskleri</h3>
+        <p class="report-card-desc">PDKS turnikede fiilen çalışılan fakat bordroda gösterilmeyen mesai saatleri:</p>
+
+        <div class="margin-stat-list">
+          <div class="margin-stat-item">
+            <span class="name">Körfez Mekanik & Borulama:</span>
+            <span class="text-rose-600 font-mono-numbers font-bold">48.5 Saat Eksik (İhtar Verildi)</span>
+          </div>
+          <div class="margin-stat-item">
+            <span class="name">Demiray Montaj (Emre K.):</span>
+            <span class="text-amber-600 font-mono-numbers font-bold">6.5 Saat İncelemede</span>
+          </div>
+          <div class="margin-stat-item">
+            <span class="name">Diğer Taşeronlar:</span>
+            <span class="text-emerald-600 font-mono-numbers font-bold">Eksik Mesai Yok (%100 Uyum)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODALLAR -->
+  <app-persona-modal
+    *ngIf="selectedPersona"
+    [worker]="selectedPersona"
+    (closed)="selectedPersona = null"
+  ></app-persona-modal>
+
+  <app-ai-audit-modal
+    *ngIf="selectedAudit"
+    [audit]="selectedAudit"
+    (closed)="selectedAudit = null"
+    (statusChanged)="onAuditStatusChanged($event)"
+  ></app-ai-audit-modal>
+
+  <app-payroll-upload-modal
+    *ngIf="showUploadModal"
+    [workers]="workers"
+    (closed)="showUploadModal = false"
+    (uploaded)="onPayrollUploaded()"
+  ></app-payroll-upload-modal>
+
+  <app-new-worker-modal
+    *ngIf="showNewWorkerModal"
+    [companies]="companies"
+    (closed)="showNewWorkerModal = false"
+    (saved)="onWorkerSaved()"
+  ></app-new-worker-modal>
+
+</div>
