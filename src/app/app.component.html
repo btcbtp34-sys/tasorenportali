@@ -52,28 +52,16 @@
       </div>
     </div>
 
-    <!-- ÜST MENÜ SEKMELERİ BARI (FERAH VE GENİŞ) -->
+    <!-- ÜST MENÜ SEKMELERİ BARI (HİYERARŞİK AKIŞ: TAŞERONLAR -> ÇALIŞANLAR -> DENETİM) -->
     <div class="header-menu-row">
       <nav class="top-nav-tabs">
-        <button
-          class="top-nav-tab"
-          [class.active]="activeTab === 'ai-audits'"
-          (click)="activeTab = 'ai-audits'"
-        >
-          <app-icon name="brain" [size]="17"></app-icon>
-          <span>AI Bordro & Hakediş Çapraz Denetimi</span>
-          <span class="tab-badge" [class.badge-rose-counter]="highRiskAuditCount > 0">
-            {{ audits.length }}
-          </span>
-        </button>
-
         <button
           class="top-nav-tab"
           [class.active]="activeTab === 'subcontractors'"
           (click)="activeTab = 'subcontractors'"
         >
           <app-icon name="building" [size]="17"></app-icon>
-          <span>SAP Alt Taşeron Firmalar</span>
+          <span>1. SAP Alt Taşeron Firmalar</span>
           <span class="tab-badge">{{ companies.length }}</span>
         </button>
 
@@ -83,8 +71,20 @@
           (click)="activeTab = 'workers'"
         >
           <app-icon name="users" [size]="17"></app-icon>
-          <span>Çalışan Havuzu & Persona Özlük Kartları</span>
-          <span class="tab-badge">{{ workers.length }}</span>
+          <span>2. Taşeron Çalışanları & Hakediş Karnesi</span>
+          <span class="tab-badge">{{ filteredWorkers.length }} / {{ workers.length }}</span>
+        </button>
+
+        <button
+          class="top-nav-tab"
+          [class.active]="activeTab === 'ai-audits'"
+          (click)="activeTab = 'ai-audits'"
+        >
+          <app-icon name="brain" [size]="17"></app-icon>
+          <span>3. AI Bordro & Çapraz Hakediş Denetimi</span>
+          <span class="tab-badge" [class.badge-rose-counter]="highRiskAuditCount > 0">
+            {{ audits.length }}
+          </span>
         </button>
 
         <button
@@ -93,7 +93,7 @@
           (click)="activeTab = 'pdks'"
         >
           <app-icon name="clock" [size]="17"></app-icon>
-          <span>PDKS Turnike & Mesai Kayıtları</span>
+          <span>4. PDKS Turnike & Mesai</span>
           <span class="tab-badge">{{ pdksRecords.length }}</span>
         </button>
 
@@ -103,7 +103,7 @@
           (click)="activeTab = 'reports'"
         >
           <app-icon name="file-text" [size]="17"></app-icon>
-          <span>Yönetici & Denetim Raporu</span>
+          <span>5. Yönetici & Denetim Raporu</span>
         </button>
       </nav>
     </div>
@@ -378,32 +378,95 @@
   <!-- TAB 2: SAP ALT TAŞERON FİRMALAR (DİREKT TABLO GÖRÜNÜMÜ) -->
   <!-- ========================================================================= -->
   <main *ngIf="activeTab === 'subcontractors'" class="content-section">
-    <div class="section-toolbar glass-panel">
-      <div class="toolbar-left">
-        <h2 class="section-title">
-          <app-icon name="database" [size]="20" customClass="text-sky-600"></app-icon>
-          SAP ERP Sisteminden Çekilen Alt Taşeron Firmalar ({{ filteredCompanies.length }} Firma)
-        </h2>
-      </div>
-      <div class="toolbar-right">
-        <!-- Arama Kutusu -->
-        <div class="table-search-box">
-          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
-          <input
-            type="text"
-            [(ngModel)]="searchQuery"
-            placeholder="Taşeron firma adı veya VKN ara..."
-            class="table-search-input"
-          />
-          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
-            <app-icon name="x" [size]="14"></app-icon>
+    <!-- TAŞERON FİRMALARI DROPDOWN FİLTRELEME & KONTROL PANELİ -->
+    <div class="glass-panel" style="padding: 16px 20px; margin-bottom: 16px; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <app-icon name="database" [size]="18" customClass="text-sky-600"></app-icon>
+          <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">Alt Taşeron Firma Filtreleri</span>
+          <span class="badge badge-blue font-mono-numbers">{{ filteredCompanies.length }} / {{ companies.length }} Firma</span>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn-secondary btn-sm" (click)="resetCompanyFilters()" title="Filtreleri sıfırla">
+            <app-icon name="refresh" [size]="13"></app-icon>
+            <span>Filtreleri Sıfırla</span>
+          </button>
+          <button class="btn-secondary btn-sm" (click)="syncSap()" [disabled]="isSapSyncing">
+            <app-icon name="refresh" [size]="13" [customClass]="isSapSyncing ? 'animate-spin text-sky-600' : 'text-sky-600'"></app-icon>
+            <span>{{ isSapSyncing ? 'Eşitleniyor...' : 'SAP RFC Canlı Eşitle' }}</span>
           </button>
         </div>
+      </div>
 
-        <button class="btn-secondary" (click)="syncSap()" [disabled]="isSapSyncing">
-          <app-icon name="refresh" [size]="15" [customClass]="isSapSyncing ? 'animate-spin text-sky-600' : 'text-sky-600'"></app-icon>
-          <span>{{ isSapSyncing ? 'Eşitleniyor...' : 'SAP RFC Canlı Eşitle' }}</span>
-        </button>
+      <!-- 3'LÜ DROPDOWN VE ARAMA GRUBU -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: end;">
+        <!-- 1. TESİS DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="factory" [size]="13" customClass="text-slate-500"></app-icon>
+            <span>Tesis / Fabrika</span>
+          </label>
+          <select
+            [(ngModel)]="companySelectedPlant"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Tesis ve Sahalar ({{ uniquePlants.length }})</option>
+            <option *ngFor="let p of uniquePlants" [value]="p">{{ p }}</option>
+          </select>
+        </div>
+
+        <!-- 2. STATÜ DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="check-circle" [size]="13" customClass="text-slate-500"></app-icon>
+            <span>Sözleşme Statüsü</span>
+          </label>
+          <select
+            [(ngModel)]="companySelectedStatus"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Sözleşme Statüleri</option>
+            <option value="ACTIVE">Faal Sözleşmeler</option>
+            <option value="AUDIT_HOLD">İncelemede / Askıda</option>
+          </select>
+        </div>
+
+        <!-- 3. KIRIM / MAKAS RİSK DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="trending-down" [size]="13" customClass="text-rose-600"></app-icon>
+            <span>Hakediş Kırım Riski</span>
+          </label>
+          <select
+            [(ngModel)]="companySelectedRisk"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Hakediş Oranları</option>
+            <option value="HIGH_CUT">Yüksek Kırım Uyarısı (%20+ Kesinti)</option>
+            <option value="COMPLIANT">Sözleşmeye Uyumlu (%15 altı)</option>
+          </select>
+        </div>
+
+        <!-- 4. FİRMA ARAMA KUTUSU -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="search" [size]="13" customClass="text-sky-600"></app-icon>
+            <span>Taşeron Arama</span>
+          </label>
+          <div class="table-search-box" style="height: 38px;">
+            <app-icon name="search" [size]="14" customClass="text-sky-600"></app-icon>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              placeholder="Firma unvanı, VKN veya sözleşme no..."
+              class="table-search-input"
+            />
+            <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+              <app-icon name="x" [size]="14"></app-icon>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -412,23 +475,73 @@
       <table class="custom-table">
         <thead>
           <tr>
-            <th>SAP Satıcı Kodu</th>
-            <th>Firma Ticari Unvanı & VKN</th>
-            <th>Görevli Tesis / Fabrika</th>
-            <th>Sözleşme Kodu & Bitiş</th>
-            <th>Şantiye Sorumlusu & İletişim</th>
-            <th>Aktif İşçi</th>
-            <th>Aylık SAP Bütçesi</th>
-            <th>Birim Hakediş</th>
-            <th>Uyum Skoru</th>
-            <th>Sözleşme Statüsü</th>
-            <th style="text-align: right;">Aksiyon</th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="database" [size]="13" customClass="text-sky-600"></app-icon>
+                <span>SAP Kodu</span>
+              </div>
+            </th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="building" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Firma Unvanı & VKN</span>
+              </div>
+            </th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="factory" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Tesis</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="users" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Aktif İşçi</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="credit-card" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Aylık Bütçe</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="building" [size]="13" customClass="text-sky-600"></app-icon>
+                <span>Firmamızın Yatırdığı Hakediş</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="user" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>İşçiye Yansıyan (Ort.)</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="trending-down" [size]="13" customClass="text-rose-600"></app-icon>
+                <span>Ortalama Fark (Kırım)</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="shield-check" [size]="13" customClass="text-emerald-600"></app-icon>
+                <span>Uyum Skoru</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="check-circle" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Statü</span>
+              </div>
+            </th>
+            <th style="text-align: right;" class="nowrap">Aksiyon</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let c of filteredCompanies">
             <!-- SAP Satıcı Kodu -->
-            <td>
+            <td class="nowrap">
               <span class="sap-vendor-badge font-mono-numbers">
                 <app-icon name="database" [size]="12"></app-icon>
                 {{ c.sapVendorId }}
@@ -439,77 +552,85 @@
             <td>
               <div class="worker-name-cell">
                 <span class="worker-title">{{ c.name }}</span>
-                <span class="worker-subtext font-mono-numbers">VKN: {{ c.taxNumber }}</span>
+                <span class="worker-subtext font-mono-numbers">VKN: {{ c.taxNumber }} &bull; {{ c.contractCode }}</span>
               </div>
             </td>
 
             <!-- Tesis -->
             <td>
               <div style="display: flex; align-items: center; gap: 6px;">
-                <app-icon name="factory" [size]="15" customClass="text-slate-400"></app-icon>
-                <span class="font-semibold text-slate-800">{{ c.plant }}</span>
+                <app-icon name="factory" [size]="14" customClass="text-slate-400"></app-icon>
+                <span class="font-semibold text-slate-800 text-xs">{{ c.plant }}</span>
               </div>
             </td>
 
-            <!-- Sözleşme Kodu & Bitiş -->
-            <td>
-              <div class="font-mono-numbers text-xs text-sky-700 font-semibold">{{ c.contractCode }}</div>
-              <div class="font-mono-numbers text-xs text-slate-500">Bitiş: {{ c.contractEndDate }}</div>
-            </td>
-
-            <!-- Şantiye Sorumlusu -->
-            <td>
-              <div class="text-sm font-medium text-slate-900">{{ c.supervisorName }}</div>
-              <div class="font-mono-numbers text-xs text-sky-700">{{ c.supervisorPhone }}</div>
-            </td>
-
             <!-- Aktif İşçi Sayısı -->
-            <td>
+            <td class="nowrap">
               <span class="font-mono-numbers font-bold text-slate-900" style="font-size: 0.95rem;">
                 {{ c.activeWorkerCount }} Kişi
               </span>
             </td>
 
             <!-- Aylık Bütçe -->
-            <td>
-              <span class="font-mono-numbers font-bold text-sky-700" style="font-size: 0.95rem;">
+            <td class="nowrap">
+              <span class="currency-val text-sky-700" style="font-size: 0.95rem;">
                 {{ c.monthlySapBudget.toLocaleString('tr-TR') }} ₺
               </span>
             </td>
 
-            <!-- Birim Hakediş -->
-            <td>
-              <div class="font-mono-numbers font-semibold text-slate-800">
+            <!-- 1. Firmamızın Ödediği Hakediş -->
+            <td class="nowrap">
+              <div class="currency-val text-slate-900" style="font-size: 0.95rem;">
                 {{ c.avgSapRatePerWorker.toLocaleString('tr-TR') }} ₺
               </div>
-              <div class="text-xs text-slate-400">Kişi / Ay</div>
+              <div class="text-xs text-sky-700 font-medium nowrap">Birim Hakediş Bedeli</div>
+            </td>
+
+            <!-- 2. Taşeronun Personele Yatırdığı -->
+            <td class="nowrap">
+              <div class="currency-val text-slate-700" style="font-size: 0.95rem;">
+                {{ c.avgWorkerActualPay.toLocaleString('tr-TR') }} ₺
+              </div>
+              <div class="text-xs text-slate-500 nowrap">Personele Verilen</div>
+            </td>
+
+            <!-- 3. Aradaki Fark (Kırım / Kesinti) -->
+            <td class="nowrap">
+              <div style="display: flex; flex-direction: column; gap: 3px;">
+                <span class="currency-val" style="color: #e11d48; font-size: 0.95rem;">
+                  {{ c.avgSpreadAmount.toLocaleString('tr-TR') }} ₺
+                </span>
+                <span class="badge" [ngClass]="c.avgSpreadPercentage < -15 ? 'badge-rose' : 'badge-emerald'" style="font-size: 0.72rem; padding: 2px 6px; width: fit-content;">
+                  {{ c.avgSpreadPercentage }}% Kırım
+                </span>
+              </div>
             </td>
 
             <!-- Uyum Skoru & Bar -->
-            <td>
-              <div class="compliance-cell" style="min-width: 90px;">
+            <td class="nowrap">
+              <div class="compliance-cell" style="min-width: 80px;">
                 <span class="font-mono-numbers font-bold" [class.text-emerald-600]="c.complianceScore >= 80" [class.text-rose-600]="c.complianceScore < 70" [class.text-amber-600]="c.complianceScore >= 70 && c.complianceScore < 80">
                   %{{ c.complianceScore }}
                 </span>
-                <div class="compliance-mini-bar" style="width: 50px;">
+                <div class="compliance-mini-bar" style="width: 45px;">
                   <div class="compliance-mini-fill" [style.width.%]="c.complianceScore" [ngClass]="c.complianceScore >= 80 ? 'bg-emerald' : (c.complianceScore < 70 ? 'bg-rose' : 'bg-amber')"></div>
                 </div>
               </div>
             </td>
 
             <!-- Statü -->
-            <td>
+            <td class="nowrap">
               <span class="badge" [ngClass]="c.status === 'ACTIVE' ? 'badge-emerald' : 'badge-amber'">
                 <app-icon [name]="c.status === 'ACTIVE' ? 'check-circle' : 'alert-triangle'" [size]="11"></app-icon>
-                {{ c.status === 'ACTIVE' ? 'Faal Sözleşme' : 'İncelemede' }}
+                {{ c.status === 'ACTIVE' ? 'Faal' : 'İnceleme' }}
               </span>
             </td>
 
             <!-- Aksiyonlar -->
-            <td style="text-align: right;">
-              <button class="btn-secondary btn-sm" (click)="filterByCompanyWorkers(c.name)">
+            <td style="text-align: right;" class="nowrap">
+              <button class="btn-primary btn-sm" (click)="filterByCompanyWorkers(c)">
                 <app-icon name="users" [size]="13"></app-icon>
-                <span>İşçileri Gör ({{ c.activeWorkerCount }})</span>
+                <span>Çalışanları Gör & Denetle ({{ c.activeWorkerCount }})</span>
               </button>
             </td>
           </tr>
@@ -528,93 +649,312 @@
   </main>
 
   <!-- ========================================================================= -->
-  <!-- TAB 3: ÇALIŞAN HAVUZU & PERSONA ÖZLÜK KARTLARI -->
+  <!-- TAB 2: ÇALIŞAN HAVUZU, HAKEDİŞ KARNESİ & BORDRO FARK ANALİZİ -->
   <!-- ========================================================================= -->
   <main *ngIf="activeTab === 'workers'" class="content-section">
-    <div class="section-toolbar glass-panel">
-      <div class="toolbar-left">
-        <h2 class="section-title">
-          <app-icon name="users" [size]="20" customClass="text-sky-600"></app-icon>
-          Taşeron Çalışan Havuzu, Persona Kartları & İSG Dosyaları
-        </h2>
-      </div>
-      <div class="toolbar-right">
-        <!-- Arama Kutusu -->
-        <div class="table-search-box">
-          <app-icon name="search" [size]="15" customClass="text-sky-600"></app-icon>
-          <input
-            type="text"
-            [(ngModel)]="searchQuery"
-            placeholder="Personel adı, TC No veya görev ara..."
-            class="table-search-input"
-          />
-          <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
-            <app-icon name="x" [size]="14"></app-icon>
-          </button>
-        </div>
 
-        <button class="btn-primary" (click)="openNewWorker()">
-          <app-icon name="plus" [size]="16"></app-icon>
-          <span>Yeni Personel Kaydet</span>
+    <!-- SEÇİLİ TAŞERON FİRMASI DETAY BANNERI (HİYERARŞİK BAĞLANTI) -->
+    <div *ngIf="selectedCompanyForWorkers" class="glass-panel" style="padding: 16px 20px; margin-bottom: 18px; border-radius: 12px; border: 1.5px solid #38bdf8; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 48px; height: 48px; border-radius: 10px; background: #0284c7; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.2);">
+          <app-icon name="building" [size]="24"></app-icon>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0c4a6e; margin: 0;">{{ selectedCompanyForWorkers.name }}</h3>
+            <span class="sap-vendor-badge font-mono-numbers">{{ selectedCompanyForWorkers.sapVendorId }}</span>
+          </div>
+          <p style="font-size: 0.82rem; color: #0369a1; margin: 3px 0 0 0;">
+            {{ selectedCompanyForWorkers.plant }} &bull; Sözleşme: {{ selectedCompanyForWorkers.contractCode }} &bull; Toplam {{ selectedCompanyForWorkers.activeWorkerCount }} Kayıtlı Personel
+          </p>
+        </div>
+      </div>
+
+      <!-- Firmanın Ortalama Hakediş & Kırım Çubuğu -->
+      <div style="display: flex; align-items: center; gap: 16px; background: #ffffff; padding: 10px 18px; border-radius: 10px; border: 1px solid #bae6fd; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+        <div>
+          <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Firmamızın Ödediği</div>
+          <div class="font-mono-numbers" style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ selectedCompanyForWorkers.avgSapRatePerWorker.toLocaleString('tr-TR') }} ₺</div>
+        </div>
+        <div style="font-size: 1.2rem; color: #94a3b8; font-weight: bold;">&rarr;</div>
+        <div>
+          <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">İşçiye Verilen (Ort.)</div>
+          <div class="font-mono-numbers" style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">{{ selectedCompanyForWorkers.avgWorkerActualPay.toLocaleString('tr-TR') }} ₺</div>
+        </div>
+        <div style="font-size: 1.2rem; color: #94a3b8; font-weight: bold;">=</div>
+        <div>
+          <div style="font-size: 0.68rem; color: #e11d48; font-weight: 800; text-transform: uppercase;">Ortalama Fark</div>
+          <div class="font-mono-numbers" style="font-size: 1.05rem; font-weight: 800; color: #e11d48;">{{ selectedCompanyForWorkers.avgSpreadAmount.toLocaleString('tr-TR') }} ₺ ({{ selectedCompanyForWorkers.avgSpreadPercentage }}%)</div>
+        </div>
+      </div>
+
+      <!-- Filtre Temizleme / Geri Dön Butonları -->
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-secondary btn-sm" (click)="clearCompanyFilter()">
+          <app-icon name="users" [size]="14"></app-icon>
+          <span>Tüm Çalışanları Göster</span>
+        </button>
+        <button class="btn-primary btn-sm" (click)="activeTab = 'subcontractors'">
+          <app-icon name="arrow-left" [size]="14"></app-icon>
+          <span>Taşeron Listesine Dön</span>
         </button>
       </div>
     </div>
 
+    <!-- DROPDOWN FİLTRELEME & ARAMA PANELİ (EKRAN ÜZERİNDE DİREKT ERİŞİM) -->
+    <div class="glass-panel" style="padding: 16px 20px; margin-bottom: 16px; border-radius: 12px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <app-icon name="filter" [size]="18" customClass="text-sky-600"></app-icon>
+          <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">Çalışan & Hakediş Filtreleri</span>
+          <span class="badge badge-blue font-mono-numbers">{{ filteredWorkers.length }} / {{ workers.length }} Personel</span>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn-secondary btn-sm" (click)="resetWorkerFilters()" title="Tüm filtreleri varsayılana döndür">
+            <app-icon name="refresh" [size]="13"></app-icon>
+            <span>Filtreleri Sıfırla</span>
+          </button>
+          <button class="btn-primary btn-sm" (click)="openNewWorker()">
+            <app-icon name="plus" [size]="14"></app-icon>
+            <span>Yeni Personel Kaydet</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4'LÜ DROPDOWN VE ARAMA GRUBU -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; align-items: end;">
+        <!-- 1. TAŞERON FİRMA DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="building" [size]="13" customClass="text-slate-500"></app-icon>
+            <span>Taşeron Firma</span>
+          </label>
+          <select
+            [(ngModel)]="workerSelectedCompanyId"
+            (change)="onWorkerCompanyFilterChange()"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Taşeron Firmalar ({{ companies.length }})</option>
+            <option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+
+        <!-- 2. GÖREV / MESLEK DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="user" [size]="13" customClass="text-slate-500"></app-icon>
+            <span>Görevi / Meslek</span>
+          </label>
+          <select
+            [(ngModel)]="workerSelectedRole"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Görevler ({{ uniqueRoles.length }})</option>
+            <option *ngFor="let r of uniqueRoles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <!-- 3. HAKEDİŞ & KIRIM DURUMU DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="alert-triangle" [size]="13" customClass="text-rose-600"></app-icon>
+            <span>Hakediş / Kırım Durumu</span>
+          </label>
+          <select
+            [(ngModel)]="workerRiskFilter"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Hakediş Durumları</option>
+            <option value="HIGH_RISK_CUT">Yüksek Kırım Uyarısı (%15+ Kesinti)</option>
+            <option value="NORMAL">Sözleşmeye Uyumlu</option>
+            <option value="OVERTIME_ISSUE">Eksik Fazla Mesaisi Olanlar</option>
+          </select>
+        </div>
+
+        <!-- 4. TESİS / FABRİKA DROPDOWN -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="factory" [size]="13" customClass="text-slate-500"></app-icon>
+            <span>Tesis / Fabrika</span>
+          </label>
+          <select
+            [(ngModel)]="workerSelectedPlant"
+            class="filter-select-input"
+          >
+            <option value="ALL">Tüm Tesisler ({{ uniquePlants.length }})</option>
+            <option *ngFor="let p of uniquePlants" [value]="p">{{ p }}</option>
+          </select>
+        </div>
+
+        <!-- 5. CANLI METİN ARAMA KUTUSU -->
+        <div>
+          <label style="display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.03em;">
+            <app-icon name="search" [size]="13" customClass="text-sky-600"></app-icon>
+            <span>Personel / TC Arama</span>
+          </label>
+          <div class="table-search-box" style="height: 38px;">
+            <app-icon name="search" [size]="14" customClass="text-sky-600"></app-icon>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              placeholder="Ad soyad, TC No veya unvan..."
+              class="table-search-input"
+            />
+            <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn" title="Temizle">
+              <app-icon name="x" [size]="14"></app-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLO ALANI -->
     <div class="table-container glass-panel">
       <table class="custom-table">
         <thead>
           <tr>
-            <th>Ad Soyad & TC Kimlik</th>
-            <th>Görevi / Meslek</th>
-            <th>Bağlı Olduğu Taşeron</th>
-            <th>Fabrika / Tesis</th>
-            <th>PDKS Kart Kimliği</th>
-            <th>İSG & Özlük Uyumu</th>
-            <th>Turnike Giriş Yetkisi</th>
-            <th style="text-align: right;">Persona Detayı</th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="user" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Ad Soyad & TC Kimlik</span>
+              </div>
+            </th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="shield-check" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Görevi / Meslek</span>
+              </div>
+            </th>
+            <th>
+              <div class="th-flex">
+                <app-icon name="building" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Bağlı Olduğu Taşeron</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="building" [size]="13" customClass="text-sky-600"></app-icon>
+                <span>Firmamızın Yatırdığı Hakediş</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="user" [size]="13" customClass="text-slate-600"></app-icon>
+                <span>İşçiye Ödenen (Net)</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="trending-down" [size]="13" customClass="text-rose-600"></app-icon>
+                <span>Aradaki Fark (Kırım)</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="clock" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Fazla Mesai</span>
+              </div>
+            </th>
+            <th class="nowrap">
+              <div class="th-flex">
+                <app-icon name="check-circle" [size]="13" customClass="text-slate-500"></app-icon>
+                <span>Turnike İzni</span>
+              </div>
+            </th>
+            <th style="text-align: right;" class="nowrap">Hakediş & Persona Detayı</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let worker of filteredWorkers">
+            <!-- Ad Soyad & TC -->
             <td>
               <div class="worker-name-cell">
                 <span class="worker-title">{{ worker.fullName }}</span>
                 <span class="worker-subtext font-mono-numbers">{{ worker.tcNumber }}</span>
               </div>
             </td>
+
+            <!-- Görevi -->
             <td>
               <span class="role-badge">{{ worker.role }}</span>
             </td>
+
+            <!-- Taşeron -->
             <td>
               <span class="subcontractor-name-text">{{ worker.subcontractorName }}</span>
+              <div class="text-xs text-slate-500">{{ worker.plant }}</div>
             </td>
-            <td>
-              <span class="text-slate-700 font-medium">{{ worker.plant }}</span>
+
+            <!-- 1. Firmamızın Taşerona Yatırdığı Bedel -->
+            <td class="nowrap">
+              <div class="currency-val text-slate-900" style="font-size: 0.95rem;">
+                {{ worker.companyPaidRate.toLocaleString('tr-TR') }} ₺
+              </div>
+              <div class="text-xs text-sky-700 font-medium nowrap">Birim Hakediş Bedeli</div>
             </td>
-            <td>
-              <span class="font-mono-numbers text-sky-700 font-semibold">{{ worker.pdksBadgeId }}</span>
+
+            <!-- 2. Taşeronun Çalışana Ödediği Para -->
+            <td class="nowrap">
+              <div class="currency-val text-slate-800" style="font-size: 0.95rem;">
+                {{ worker.workerActualPay.toLocaleString('tr-TR') }} ₺
+              </div>
+              <div class="text-xs text-slate-500 nowrap">İşçi Net Maaşı</div>
             </td>
-            <td>
-              <div class="compliance-cell">
-                <span class="font-mono-numbers font-semibold" [class.text-emerald]="worker.complianceRate === 100" [class.text-amber]="worker.complianceRate < 100">
-                  %{{ worker.complianceRate }}
+
+            <!-- 3. Aradaki Fark (Taşeron Kırımı - Eksi Gösterim) -->
+            <td class="nowrap">
+              <div style="display: flex; flex-direction: column; gap: 3px;">
+                <span class="currency-val" style="color: #e11d48; font-size: 0.95rem;">
+                  {{ worker.spreadAmount.toLocaleString('tr-TR') }} ₺
                 </span>
-                <div class="compliance-mini-bar">
-                  <div class="compliance-mini-fill" [style.width.%]="worker.complianceRate" [ngClass]="worker.complianceRate === 100 ? 'bg-emerald' : 'bg-amber'"></div>
+                <span class="badge" [ngClass]="worker.spreadPercentage < -15 ? 'badge-rose' : 'badge-emerald'" style="font-size: 0.72rem; padding: 2px 6px; width: fit-content;">
+                  {{ worker.spreadPercentage }}% Fark
+                </span>
+              </div>
+            </td>
+
+            <!-- Fazla Mesai Uyumu -->
+            <td>
+              <div class="overtime-cell">
+                <div class="overtime-numbers font-mono-numbers" style="font-size: 0.78rem;">
+                  <span class="text-sky-700" title="Turnike PDKS Mesaisi">PDKS: {{ worker.pdksOvertimeHours || 0 }} sa</span>
+                  <span class="text-slate-600" title="Bordroda Ödenen Mesai">Bordro: {{ worker.paidOvertimeHours || 0 }} sa</span>
+                </div>
+                <div *ngIf="worker.missingOvertimeHours && worker.missingOvertimeHours > 0" class="missing-ot-alert font-mono-numbers" style="font-size: 0.72rem; padding: 2px 6px;">
+                  <app-icon name="alert-triangle" [size]="10"></app-icon>
+                  <span>{{ worker.missingOvertimeHours }} sa EKSİK!</span>
+                </div>
+                <div *ngIf="!worker.missingOvertimeHours || worker.missingOvertimeHours === 0" class="compliant-ot-tag" style="font-size: 0.72rem; padding: 2px 6px;">
+                  <app-icon name="check-circle" [size]="10"></app-icon>
+                  <span>Mesai Tam</span>
                 </div>
               </div>
             </td>
+
+            <!-- Turnike Giriş İzni -->
             <td>
               <span class="badge" [ngClass]="worker.accessStatus === 'ALLOWED' ? 'badge-emerald' : 'badge-rose'">
                 <app-icon [name]="worker.accessStatus === 'ALLOWED' ? 'check-circle' : 'alert-triangle'" [size]="11"></app-icon>
                 {{ worker.accessStatus === 'ALLOWED' ? 'Giriş İzinli' : 'Giriş Askıda' }}
               </span>
             </td>
+
+            <!-- Aksiyon: Detay Aç -->
             <td style="text-align: right;">
-              <button class="btn-secondary btn-sm" (click)="openPersona(worker)">
-                <app-icon name="user" [size]="14"></app-icon>
-                <span>Özlük & Persona Karnesi</span>
+              <button class="btn-primary btn-sm" (click)="openPersona(worker)">
+                <app-icon name="scale" [size]="14"></app-icon>
+                <span>Hakediş & Persona Detayı</span>
               </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredWorkers.length === 0">
+            <td colspan="9" class="empty-state-cell">
+              <div class="empty-state">
+                <app-icon name="users" [size]="36" customClass="text-slate-400"></app-icon>
+                <p>Kriterlere uygun çalışan kaydı bulunamadı.</p>
+              </div>
             </td>
           </tr>
         </tbody>

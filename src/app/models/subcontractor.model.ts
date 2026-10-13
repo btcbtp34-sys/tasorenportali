@@ -11,7 +11,10 @@ export interface SubcontractorCompany {
   supervisorPhone: string;
   activeWorkerCount: number;
   monthlySapBudget: number;  // SAP Aylık Hakediş Bütçesi (TL)
-  avgSapRatePerWorker: number; // Yücel Boru SAP Kişi Başı Birim Hakediş (Referans 100)
+  avgSapRatePerWorker: number; // Ana Firmanın Kişi Başı Birim Hakedişi (Referans 100)
+  avgWorkerActualPay: number;  // Taşeronun işçiye ortalama yatırdığı ücret (Referans 80)
+  avgSpreadAmount: number;     // Ortalama fark (örn: -12.000 TL / -20 TL)
+  avgSpreadPercentage: number; // Ortalama kesinti yüzdesi (örn: -22.2%)
   complianceScore: number;   // Uyum Skoru (0-100)
   lastSapSyncTime: string;
   status: 'ACTIVE' | 'AUDIT_HOLD' | 'BLOCKED';
@@ -47,6 +50,17 @@ export interface WorkerPersona {
   complianceRate: number;     // Özlük dosya tamlığı %
   documents: WorkerDocument[];
   notes?: string;
+
+  // Hakediş & Bordro Fark Analizi (Kullanıcı Mantığı: Biz 100 veriyoruz, taşeron işçiye 80 veriyor, aradaki -20 farkı)
+  companyPaidRate: number;       // Ana firmanın taşerona bu işçi için yatırdığı birim bedel (örn: 54.000 TL / 100 TL)
+  workerActualPay: number;       // Taşeronun işçiye bordroda yatırdığı net ücret (örn: 42.000 TL / 80 TL)
+  spreadAmount: number;          // Aradaki fark eksi olarak: -(companyPaidRate - workerActualPay) örn: -12.000 TL / -20 TL
+  spreadPercentage: number;      // Kesinti yüzdesi: örn: -22.2%
+  marginRiskLevel: 'NORMAL' | 'ELEVATED' | 'HIGH_RISK_CUT';
+  pdksOvertimeHours?: number;    // PDKS fiili mesai saati
+  paidOvertimeHours?: number;    // Bordroda ödenen mesai saati
+  missingOvertimeHours?: number; // Eksik kalan mesai saati
+  missingOvertimeAmount?: number;// Eksik mesai tutarı
 }
 
 export interface PdksRecord {

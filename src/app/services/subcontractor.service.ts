@@ -27,7 +27,10 @@ export class SubcontractorService {
       supervisorPhone: '+90 532 441 8920',
       activeWorkerCount: 42,
       monthlySapBudget: 2268000,
-      avgSapRatePerWorker: 54000, // Referans 100
+      avgSapRatePerWorker: 54000, // Referans 100 (Bizim taşerona ödediğimiz)
+      avgWorkerActualPay: 47790,  // Referans 88.5 (Taşeronun işçiye verdiği)
+      avgSpreadAmount: -6210,     // Fark: -6.210 TL
+      avgSpreadPercentage: -11.5,
       complianceScore: 78,
       lastSapSyncTime: 'Bugün, 16:45 (SAP RFC Başarılı)',
       status: 'ACTIVE'
@@ -45,7 +48,10 @@ export class SubcontractorService {
       supervisorPhone: '+90 533 112 3456',
       activeWorkerCount: 28,
       monthlySapBudget: 1456000,
-      avgSapRatePerWorker: 52000,
+      avgSapRatePerWorker: 52000, // Referans 100
+      avgWorkerActualPay: 38480,  // Referans 74 (Yüksek kırım/kesinti!)
+      avgSpreadAmount: -13520,    // Fark: -13.520 TL
+      avgSpreadPercentage: -26.0,
       complianceScore: 64, // Düşük uyum, makas şüphesi
       lastSapSyncTime: 'Bugün, 15:20 (SAP RFC Başarılı)',
       status: 'AUDIT_HOLD'
@@ -64,6 +70,9 @@ export class SubcontractorService {
       activeWorkerCount: 35,
       monthlySapBudget: 1890000,
       avgSapRatePerWorker: 54000,
+      avgWorkerActualPay: 47520,
+      avgSpreadAmount: -6480,
+      avgSpreadPercentage: -12.0,
       complianceScore: 94, // Yüksek uyum
       lastSapSyncTime: 'Bugün, 14:10 (SAP RFC Başarılı)',
       status: 'ACTIVE'
@@ -82,6 +91,9 @@ export class SubcontractorService {
       activeWorkerCount: 19,
       monthlySapBudget: 912000,
       avgSapRatePerWorker: 48000,
+      avgWorkerActualPay: 36960,
+      avgSpreadAmount: -11040,
+      avgSpreadPercentage: -23.0,
       complianceScore: 82,
       lastSapSyncTime: 'Dün, 18:00 (SAP RFC Başarılı)',
       status: 'ACTIVE'
@@ -106,6 +118,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-8841',
       accessStatus: 'ALLOWED',
       complianceRate: 100,
+      companyPaidRate: 54000,
+      workerActualPay: 48600,
+      spreadAmount: -5400,
+      spreadPercentage: -10.0,
+      marginRiskLevel: 'NORMAL',
+      pdksOvertimeHours: 18.0,
+      paidOvertimeHours: 18.0,
+      missingOvertimeHours: 0.0,
+      missingOvertimeAmount: 0,
       documents: [
         { id: 'doc-1', type: 'SAGLIK_RAPORU', title: 'Ağır ve Tehlikeli İşler Sağlık Kurulu Raporu', documentNumber: 'SR-2025-9941', issueDate: '2025-02-10', expiryDate: '2026-02-10', status: 'VALID', issuer: 'Özel Dilovası OSGB' },
         { id: 'doc-2', type: 'MYK_BELGESI', title: 'MYK Çelik Kaynakçısı Seviye 4', documentNumber: 'MYK-11UY0010-4', issueDate: '2023-08-15', expiryDate: '2028-08-15', status: 'VALID', issuer: 'TÜRKAK Yetkili Belgelendirme' },
@@ -130,6 +151,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-9012',
       accessStatus: 'SUSPENDED_PAYROLL',
       complianceRate: 85,
+      companyPaidRate: 52000,
+      workerActualPay: 37440,
+      spreadAmount: -14560,
+      spreadPercentage: -28.0,
+      marginRiskLevel: 'HIGH_RISK_CUT',
+      pdksOvertimeHours: 32.5,
+      paidOvertimeHours: 8.0,
+      missingOvertimeHours: 24.5,
+      missingOvertimeAmount: 6860,
       documents: [
         { id: 'doc-6', type: 'SAGLIK_RAPORU', title: 'Vinç Operatörlüğü Psikoteknik & Görme Raporu', documentNumber: 'SR-2025-3312', issueDate: '2025-01-05', expiryDate: '2026-01-05', status: 'VALID', issuer: 'Gebze Sağlık Merkezi' },
         { id: 'doc-7', type: 'MYK_BELGESI', title: 'Endüstriyel Köprülü Vinç Operatörlük Belgesi (G Sınıfı)', documentNumber: 'VNC-8821', issueDate: '2023-01-10', expiryDate: '2028-01-10', status: 'VALID', issuer: 'Milli Eğitim Bakanlığı' },
@@ -152,6 +182,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-9114',
       accessStatus: 'SUSPENDED_PAYROLL',
       complianceRate: 90,
+      companyPaidRate: 52000,
+      workerActualPay: 39520,
+      spreadAmount: -12480,
+      spreadPercentage: -24.0,
+      marginRiskLevel: 'HIGH_RISK_CUT',
+      pdksOvertimeHours: 24.0,
+      paidOvertimeHours: 0.0,
+      missingOvertimeHours: 24.0,
+      missingOvertimeAmount: 6240,
       documents: [
         { id: 'doc-9', type: 'SAGLIK_RAPORU', title: 'Ağır İşler Periyodik Muayene Formu', documentNumber: 'SR-2024-7711', issueDate: '2024-11-10', expiryDate: '2025-11-10', status: 'EXPIRED', issuer: 'Kocaeli OSGB' },
         { id: 'doc-10', type: 'ISG_16_SAAT', title: 'Temel İSG Eğitimi', documentNumber: 'ISG-2024-901', issueDate: '2024-11-12', expiryDate: '2025-11-12', status: 'EXPIRED', issuer: 'Körfez OSGB' }
@@ -173,6 +212,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-7701',
       accessStatus: 'ALLOWED',
       complianceRate: 100,
+      companyPaidRate: 54000,
+      workerActualPay: 47520,
+      spreadAmount: -6480,
+      spreadPercentage: -12.0,
+      marginRiskLevel: 'NORMAL',
+      pdksOvertimeHours: 12.0,
+      paidOvertimeHours: 12.0,
+      missingOvertimeHours: 0.0,
+      missingOvertimeAmount: 0,
       documents: [
         { id: 'doc-11', type: 'SAGLIK_RAPORU', title: 'Ağır Sanayi Sağlık Raporu', documentNumber: 'SR-2025-010', issueDate: '2025-05-15', expiryDate: '2026-05-15', status: 'VALID', issuer: 'İskenderun Devlet Hastanesi' },
         { id: 'doc-12', type: 'MYK_BELGESI', title: 'Makine Bakım Onarımcısı Seviye 4', documentNumber: 'MYK-MBO-441', issueDate: '2022-10-01', expiryDate: '2027-10-01', status: 'VALID', issuer: 'Yetkili Belge' }
@@ -194,6 +242,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-8990',
       accessStatus: 'ALLOWED',
       complianceRate: 95,
+      companyPaidRate: 54000,
+      workerActualPay: 46980,
+      spreadAmount: -7020,
+      spreadPercentage: -13.0,
+      marginRiskLevel: 'NORMAL',
+      pdksOvertimeHours: 14.0,
+      paidOvertimeHours: 14.0,
+      missingOvertimeHours: 0.0,
+      missingOvertimeAmount: 0,
       documents: [
         { id: 'doc-13', type: 'SAGLIK_RAPORU', title: 'Sağlık Raporu', documentNumber: 'SR-2025-881', issueDate: '2025-01-08', expiryDate: '2026-01-08', status: 'VALID', issuer: 'Dilovası OSGB' }
       ]
@@ -214,6 +271,15 @@ export class SubcontractorService {
       pdksBadgeId: 'YCL-PDKS-9512',
       accessStatus: 'ALLOWED',
       complianceRate: 100,
+      companyPaidRate: 48000,
+      workerActualPay: 36960,
+      spreadAmount: -11040,
+      spreadPercentage: -23.0,
+      marginRiskLevel: 'HIGH_RISK_CUT',
+      pdksOvertimeHours: 16.0,
+      paidOvertimeHours: 6.0,
+      missingOvertimeHours: 10.0,
+      missingOvertimeAmount: 2800,
       documents: [
         { id: 'doc-14', type: 'YUKSEKTE_CALISMA', title: 'İskele Kurulum & Söküm Yüksekte Çalışma Sertifikası', documentNumber: 'YC-2024-991', issueDate: '2024-07-28', expiryDate: '2026-07-28', status: 'VALID', issuer: 'Kocaeli İSG Akademisi' }
       ]
@@ -687,6 +753,15 @@ export class SubcontractorService {
       pdksBadgeId: `YCL-PDKS-${Math.floor(Math.random() * 9000 + 1000)}`,
       accessStatus: 'ALLOWED',
       complianceRate: 100,
+      companyPaidRate: 52000,
+      workerActualPay: 44200,
+      spreadAmount: -7800,
+      spreadPercentage: -15.0,
+      marginRiskLevel: 'NORMAL',
+      pdksOvertimeHours: 0,
+      paidOvertimeHours: 0,
+      missingOvertimeHours: 0,
+      missingOvertimeAmount: 0,
       documents: [
         {
           id: `doc-${Date.now()}`,

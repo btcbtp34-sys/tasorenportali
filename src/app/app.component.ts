@@ -32,8 +32,11 @@ import { NewWorkerModalComponent } from './components/new-worker-modal/new-worke
 export class AppComponent implements OnInit {
   title = 'Taşeron Portali | Yönetim, PDKS & AI Bordro Denetim Sistemi';
 
-  // Aktif Sekme
-  activeTab: 'ai-audits' | 'subcontractors' | 'workers' | 'pdks' | 'reports' = 'ai-audits';
+  // Aktif Sekme (Taşeron Listesi Ana Giriş Ekranı)
+  activeTab: 'subcontractors' | 'workers' | 'ai-audits' | 'pdks' | 'reports' = 'subcontractors';
+
+  // Seçili Taşeron (Taşerondan İşçilere Geçiş Filtresi)
+  selectedCompanyForWorkers: SubcontractorCompany | null = null;
 
   // Taşeron Görünüm Modu (Grid veya Tablo)
   subcontractorViewMode: 'grid' | 'table' = 'grid';
@@ -49,6 +52,17 @@ export class AppComponent implements OnInit {
   selectedPlant: string = 'ALL';
   auditFilter: 'ALL' | 'RISK_ONLY' | 'OVERTIME_ONLY' | 'APPROVED' = 'ALL';
   searchQuery: string = '';
+
+  // Taşeronlar Ekranı Dropdown Filtreleri
+  companySelectedPlant: string = 'ALL';
+  companySelectedStatus: string = 'ALL';
+  companySelectedRisk: string = 'ALL';
+
+  // Çalışanlar Ekranı Dropdown Filtreleri
+  workerSelectedCompanyId: string = 'ALL';
+  workerSelectedRole: string = 'ALL';
+  workerRiskFilter: 'ALL' | 'HIGH_RISK_CUT' | 'NORMAL' | 'OVERTIME_ISSUE' = 'ALL';
+  workerSelectedPlant: string = 'ALL';
 
   // Modallar
   selectedPersona: WorkerPersona | null = null;
@@ -68,6 +82,23 @@ export class AppComponent implements OnInit {
     this.subService.pdks$.subscribe(data => (this.pdksRecords = data));
     this.subService.audits$.subscribe(data => (this.audits = data));
     this.subService.isSapSyncing$.subscribe(val => (this.isSapSyncing = val));
+  }
+
+  // Dinamik Rol & Tesis Listeleri
+  get uniqueRoles(): string[] {
+    const set = new Set<string>();
+    this.workers.forEach(w => {
+      if (w.role) set.add(w.role);
+    });
+    return Array.from(set);
+  }
+
+  get uniquePlants(): string[] {
+    const set = new Set<string>();
+    this.workers.forEach(w => {
+      if (w.plant) set.add(w.plant);
+    });
+    return Array.from(set);
   }
 
   // SAP Senkronizasyonu
@@ -122,32 +153,85 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // Filtrelenmiş Çalışanlar
+  // Filtrelenmiş Çalışanlar (Dropdown ve Hiyerarşik Firma Filtreleri)
   get filteredWorkers(): WorkerPersona[] {
     return this.workers.filter(w => {
-      const matchPlant = this.selectedPlant === 'ALL' || w.plant === this.selectedPlant;
+      // 1. Firma Filtresi
+      let matchCompany = true;
+      if (this.workerSelectedCompanyId !== 'ALL') {
+        matchCompany = w.subcontractorId === this.workerSelectedCompanyId;
+      } else if (this.selectedCompanyForWorkers) {
+        matchCompany =
+          w.subcontractorId === this.selectedCompanyForWorkers.id ||
+          w.subcontractorName === this.selectedCompanyForWorkers.name;
+      }
+
+      // 2. Rol / Görev Filtresi
+      const matchRole = this.workerSelectedRole === 'ALL' || w.role === this.workerSelectedRole;
+
+      // 3. Tesis Filtresi
+      const matchPlant = this.workerSelectedPlant === 'ALL' || w.plant === this.workerSelectedPlant;
+
+      // 4. Kırım / Kesinti Risk Filtresi
+      let matchRisk = true;
+      if (this.workerRiskFilter === 'HIGH_RISK_CUT') {
+        matchRisk = w.marginRiskLevel === 'HIGH_RISK_CUT';
+      } else if (this.workerRiskFilter === 'NORMAL') {
+        matchRisk = w.marginRiskLevel === 'NORMAL';
+      } else if (this.workerRiskFilter === 'OVERTIME_ISSUE') {
+        matchRisk = !!(w.missingOvertimeHours && w.missingOvertimeHours > 0);
+      }
+
+      // 5. Genel Arama (Ad Soyad, TC, Firma)
       const matchSearch =
         !this.searchQuery ||
         w.fullName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         w.tcNumber.includes(this.searchQuery) ||
         w.subcontractorName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         w.role.toLowerCase().includes(this.searchQuery.toLowerCase());
-      return matchPlant && matchSearch;
+
+      return matchCompany && matchRole && matchPlant && matchRisk && matchSearch;
     });
   }
 
-  // Filtrelenmiş Taşeron Şirketler
+  // Filtrelenmiş Taşeron Şirketler (Dropdown Destekli)
   get filteredCompanies(): SubcontractorCompany[] {
     return this.companies.filter(c => {
-      const matchPlant = this.selectedPlant === 'ALL' || c.plant.includes(this.selectedPlant) || c.plant === this.selectedPlant;
+      // 1. Tesis Filtresi
+      const matchPlant =
+        this.companySelectedPlant === 'ALL' ||
+        c.plant.includes(this.companySelectedPlant) ||
+        c.plant === this.companySelectedPlant;
+
+      // 2. Statü Filtresi
+      const matchStatus =
+        this.companySelectedStatus === 'ALL' || c.status === this.companySelectedStatus;
+
+      // 3. Kırım / Kesinti Risk Seviyesi
+      let matchRisk = true;
+      if (this.companySelectedRisk === 'HIGH_CUT') {
+        matchRisk = c.avgSpreadPercentage <= -20;
+      } else if (this.companySelectedRisk === 'COMPLIANT') {
+        matchRisk = c.avgSpreadPercentage > -15;
+      }
+
+      // 4. Arama Metni
       const matchSearch =
         !this.searchQuery ||
         c.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         c.sapVendorId.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         c.contractCode.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         c.supervisorName.toLowerCase().includes(this.searchQuery.toLowerCase());
-      return matchPlant && matchSearch;
+
+      return matchPlant && matchStatus && matchRisk && matchSearch;
     });
+  }
+
+  resetCompanyFilters(): void {
+    this.companySelectedPlant = 'ALL';
+    this.companySelectedStatus = 'ALL';
+    this.companySelectedRisk = 'ALL';
+    this.searchQuery = '';
   }
 
   // Filtrelenmiş PDKS Kayıtları
@@ -220,8 +304,39 @@ export class AppComponent implements OnInit {
     this.showToast('Taşeron Denetim Raporu PDF/Excel olarak hazırlandı.', 'info');
   }
 
-  filterByCompanyWorkers(companyName: string): void {
-    this.searchQuery = companyName;
+  filterByCompanyWorkers(company: SubcontractorCompany | string): void {
+    if (typeof company === 'string') {
+      const found = this.companies.find(c => c.name === company);
+      this.selectedCompanyForWorkers = found || null;
+      this.workerSelectedCompanyId = found ? found.id : 'ALL';
+    } else {
+      this.selectedCompanyForWorkers = company;
+      this.workerSelectedCompanyId = company.id;
+    }
+    this.searchQuery = '';
     this.activeTab = 'workers';
+  }
+
+  onWorkerCompanyFilterChange(): void {
+    if (this.workerSelectedCompanyId === 'ALL') {
+      this.selectedCompanyForWorkers = null;
+    } else {
+      this.selectedCompanyForWorkers = this.companies.find(c => c.id === this.workerSelectedCompanyId) || null;
+    }
+  }
+
+  clearCompanyFilter(): void {
+    this.selectedCompanyForWorkers = null;
+    this.workerSelectedCompanyId = 'ALL';
+    this.searchQuery = '';
+  }
+
+  resetWorkerFilters(): void {
+    this.selectedCompanyForWorkers = null;
+    this.workerSelectedCompanyId = 'ALL';
+    this.workerSelectedRole = 'ALL';
+    this.workerRiskFilter = 'ALL';
+    this.workerSelectedPlant = 'ALL';
+    this.searchQuery = '';
   }
 }
